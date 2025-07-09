@@ -1,6 +1,7 @@
 const Parser = require('rss-parser');
 const fs = require('fs');
 const parser = new Parser();
+const summaryMsg = await summarizeChanges(changeBuffer);
 
 async function addArticle() {
   let feed = await parser.parseURL('https://www.freecodecamp.org/news/rss/');
@@ -19,6 +20,6 @@ const { addArticle } = require('./articleFetcher');
 if (changeBuffer.length === 0) {
   await addArticle();
   await git.add('.');
-  await git.commit(`docs: add new tech article`);
+  await git.commit(summaryMsg);
 }
 
