@@ -3,7 +3,7 @@
     "displayName": "Productivity Tracker",
     "description": "Track coding activity & auto-commit summaries to private repo.",
     "version": "0.0.1",
-    "publisher": "yourname",
+    "publisher": "KiranNerella",
     "engines": { "vscode": "^1.80.0" },
     "activationEvents": ["onCommand:extension.startTracker"],
     "main": "./out/extension.js",
