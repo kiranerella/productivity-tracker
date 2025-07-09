@@ -19,5 +19,10 @@
   "bugs": {
     "url": "https://github.com/kiranerella/productivity-tracker/issues"
   },
-  "homepage": "https://github.com/kiranerella/productivity-tracker#readme"
+  "homepage": "https://github.com/kiranerella/productivity-tracker#readme",
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "node-cron": "^4.2.0",
+    "simple-git": "^3.28.0"
+  }
 }
