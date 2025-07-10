@@ -32,9 +32,21 @@ cron.schedule('*/30 * * * *', async () => {
 console.log('Tracker started...');
 
 // Start the file watcher
-const { startWatching } = require('./fileWatcher');
+// const { startWatching } = require('./fileWatcher');
 
-startWatching('./', (event, filePath) => {
-    console.log(`[${event}] ${filePath}`);
+// startWatching('./', (event, filePath) => {
+//     console.log(`[${event}] ${filePath}`);
     // TODO: To add logic to store diffs & prepare summary
+// });
+
+const { startWatching, getRecentChangesAndClear } = require('./fileWatcher');
+const { generateSummary, saveSummaryToFile } = require('./summarizer');
+
+startWatching('./');  // watch current project
+
+cron.schedule('*/2 * * * *', async () => {  // every 2 minutes for demo
+    console.log('⏳ Generating summary...');
+    const changes = getRecentChangesAndClear();
+    const summary = await generateSummary(changes);
+    await saveSummaryToFile(summary);
 });

@@ -1,17 +1,30 @@
 const chokidar = require('chokidar');
 
-function startWatching(pathToWatch, onChangeCallback) {
+let changedFiles = [];
+
+function startWatching(pathToWatch) {
     const watcher = chokidar.watch(pathToWatch, {
         ignored: /node_modules|\.git/,
         persistent: true
     });
 
     watcher
-        .on('add', path => onChangeCallback('add', path))
-        .on('change', path => onChangeCallback('change', path))
-        .on('unlink', path => onChangeCallback('unlink', path));
+        .on('add', path => recordChange('added', path))
+        .on('change', path => recordChange('modified', path))
+        .on('unlink', path => recordChange('deleted', path));
 
     console.log(`👀 Watching for file changes in ${pathToWatch}`);
 }
 
-module.exports = { startWatching };
+function recordChange(type, filePath) {
+    changedFiles.push({ type, filePath, time: new Date().toISOString() });
+    console.log(`[${type}] ${filePath}`);
+}
+
+function getRecentChangesAndClear() {
+    const recent = [...changedFiles];
+    changedFiles = [];  // clear after taking snapshot
+    return recent;
+}
+
+module.exports = { startWatching, getRecentChangesAndClear };
