@@ -1,8 +1,8 @@
 const chokidar = require('chokidar');
 const simpleGit = require('simple-git');
 const cron = require('node-cron');
+// This script tracks file changes in the current directory and commits them every 30 minutes.
 const { summarizeChanges } = require('./summarizer');
-
 
 const git = simpleGit();
 const watcher = chokidar.watch('.', {
