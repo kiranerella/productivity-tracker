@@ -30,3 +30,11 @@ cron.schedule('*/30 * * * *', async () => {
   }
 });
 console.log('Tracker started...');
+
+// Start the file watcher
+const { startWatching } = require('./fileWatcher');
+
+startWatching('./', (event, filePath) => {
+    console.log(`[${event}] ${filePath}`);
+    // TODO: To add logic to store diffs & prepare summary
+});
