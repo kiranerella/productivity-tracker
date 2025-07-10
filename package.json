@@ -25,6 +25,7 @@
     "dotenv": "^17.2.0",
     "node-cron": "^4.2.0",
     "openai": "^5.8.3",
+    "rss-parser": "^3.13.0",
     "simple-git": "^3.28.0"
   }
 }
