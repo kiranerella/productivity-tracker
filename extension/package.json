@@ -4,13 +4,32 @@
     "description": "Track coding activity & auto-commit summaries to private repo.",
     "version": "0.0.1",
     "publisher": "KiranNerella",
-    "engines": { "vscode": "^1.80.0" },
-    "activationEvents": ["onCommand:extension.startTracker"],
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "activationEvents": [
+        "onCommand:extension.startTracker"
+    ],
     "main": "./out/extension.js",
     "contributes": {
-      "commands": [
-        { "command": "extension.startTracker", "title": "Start Tracker" }
-      ]
+        "commands": [
+            {
+                "command": "extension.startTracker",
+                "title": "Start Tracker"
+            }
+        ]
+    },
+    "scripts": {
+        "compile": "tsc",
+        "watch": "tsc -w"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^24.0.12",
+        "@types/vscode": "^1.101.0",
+        "typescript": "^5.8.3",
+        "vscode": "^1.1.37"
     }
-  }
-  
+}
