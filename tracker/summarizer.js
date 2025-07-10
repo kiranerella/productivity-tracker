@@ -7,6 +7,7 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
+// This function generates a summary of code changes using OpenAI's GPT model.
 async function generateSummary(changes) {
     if (!changes.length) return "No code changes detected this period.";
 
@@ -23,6 +24,7 @@ ${changes.map(c => `- ${c.type} ${c.filePath}`).join('\n')}
     return completion.choices[0].message.content;
 }
 
+// This function saves the generated summary to a markdown file with a timestamp.
 async function saveSummaryToFile(summary) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `summary-${timestamp}.md`;
