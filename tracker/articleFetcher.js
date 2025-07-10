@@ -2,7 +2,9 @@ const Parser = require('rss-parser');
 const fs = require('fs');
 const parser = new Parser();
 const summaryMsg = await summarizeChanges(changeBuffer);
+const path = require('path');
 
+// This function fetches the latest article from freeCodeCamp's RSS feed and saves it as a markdown file.
 async function addArticle() {
   let feed = await parser.parseURL('https://www.freecodecamp.org/news/rss/');
   const first = feed.items[0];
@@ -11,6 +13,7 @@ async function addArticle() {
   console.log(`Added article: ${first.title}`);
 }
 
+//
 module.exports = { addArticle };
 
 
@@ -23,3 +26,11 @@ if (changeBuffer.length === 0) {
   await git.commit(summaryMsg);
 }
 
+async function getRandomArticle() {
+  const articlesDir = path.join(__dirname, '..', 'articles');
+  const files = fs.readdirSync(articlesDir).filter(f => f.endsWith('.md'));
+  if (!files.length) return "Fallback: No articles found.";
+  const randomFile = files[Math.floor(Math.random() * files.length)];
+  return fs.readFileSync(path.join(articlesDir, randomFile), 'utf8');
+}
+module.exports = { getRandomArticle };

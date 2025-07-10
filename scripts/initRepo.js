@@ -1,3 +1,4 @@
+// Initializes a local git repository in the current directory.
 const { execSync } = require('child_process');
 
 try {

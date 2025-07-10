@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+// This class manages the webview panel for the Productivity Tracker extension
 export class TrackerPanel {
   public static currentPanel: TrackerPanel | undefined;
 
@@ -12,6 +13,7 @@ export class TrackerPanel {
     this._update();
   }
 
+  // Dispose of the panel when it's no longer needed
   public static createOrShow(extensionUri: vscode.Uri) {
     const column = vscode.ViewColumn.Beside;
 
@@ -33,6 +35,7 @@ export class TrackerPanel {
     this._panel.webview.html = this._getHtmlForWebview();
   }
 
+  // Handle panel disposal
   private _getHtmlForWebview() {
     return `
       <!DOCTYPE html>

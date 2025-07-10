@@ -31,22 +31,47 @@ cron.schedule('*/30 * * * *', async () => {
 });
 console.log('Tracker started...');
 
-// Start the file watcher
-// const { startWatching } = require('./fileWatcher');
-
-// startWatching('./', (event, filePath) => {
-//     console.log(`[${event}] ${filePath}`);
-    // TODO: To add logic to store diffs & prepare summary
-// });
 
 const { startWatching, getRecentChangesAndClear } = require('./fileWatcher');
 const { generateSummary, saveSummaryToFile } = require('./summarizer');
+const { initRepo, commitAndPushSummary } = require('./gitCommitter');
 
-startWatching('./');  // watch current project
+(async () => {
+  await initRepo();
+  startWatching('./');
 
-cron.schedule('*/2 * * * *', async () => {  // every 2 minutes for demo
-    console.log('⏳ Generating summary...');
+  cron.schedule(process.env.GIT_COMMIT_INTERVAL, async () => {
+    console.log('Generating summary...');
     const changes = getRecentChangesAndClear();
     const summary = await generateSummary(changes);
-    await saveSummaryToFile(summary);
+    const filePath = await saveSummaryToFile(summary);
+    await commitAndPushSummary(filePath);
+});
+})();
+
+const { getRecentCommits } = require('./gitCommitter');
+const { getRandomArticle } = require('./articleFetcher');
+
+cron.schedule(process.env.GIT_COMMIT_INTERVAL, async () => {
+    console.log('⏳ Generating summary...');
+    const changes = getRecentChangesAndClear();
+
+    let summary = "";
+
+    try {
+        summary = await generateSummary(changes);
+    } catch (e) {
+        console.error('GPT summarizer failed, trying local commits');
+        const commits = await getRecentCommits();
+        if (commits.length) {
+            summary = "Manual fallback summary based on recent commits:\n" +
+                      commits.map(c => `- ${c.message}`).join('\n');
+        } else {
+            console.log('No commits found, using fallback article');
+            summary = await getRandomArticle();
+        }
+    }
+
+    const filePath = await saveSummaryToFile(summary);
+    await commitAndPushSummary(filePath);
 });
