@@ -1,32 +1,40 @@
-const OpenAI = require("openai");
-require("dotenv").config();
+require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+const { OpenAI } = require('openai');
 
-let openai = null;
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
 
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
+async function generateSummary(changes) {
+    if (!changes.length) return "No code changes detected this period.";
 
-async function summarizeChanges(changeBuffer) {
-  if (!openai) {
-    console.log("No API Key – using fallback summary.");
-    return `chore: ${changeBuffer.length} file(s) changed`;
-  }
+    const prompt = `
+Write a concise, human-readable summary of these file changes:\n
+${changes.map(c => `- ${c.type} ${c.filePath}`).join('\n')}
+`;
 
-  const prompt = `Summarize this developer activity into a useful commit message:\n${JSON.stringify(changeBuffer, null, 2)}`;
-  
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
+    const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
     });
 
-    return response.choices[0].message.content.trim();
-  } catch (err) {
-    console.error("GPT summarizer error:", err.message);
-    return `chore: summary of ${changeBuffer.length} changes`;
-  }
+    return completion.choices[0].message.content;
 }
 
-// This uses OpenAI's API (for now - will implement dynamic model for multile LLM's) to summarize file changes into a commit message.
-module.exports = { summarizeChanges };
+async function saveSummaryToFile(summary) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `summary-${timestamp}.md`;
+    const dir = path.join(__dirname, '..', 'summaries');
+
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+
+    const filePath = path.join(dir, filename);
+    fs.writeFileSync(filePath, summary, 'utf8');
+
+    console.log(`📝 Saved summary: ${filePath}`);
+    return filePath;
+}
+
+module.exports = { generateSummary, saveSummaryToFile };
