@@ -20,7 +20,7 @@ async function commitAndPushSummary(summaryFilePath) {
     try {
         await git.add(path.relative(repoPath, summaryFilePath));
         await git.commit(`feat: add summary ${path.basename(summaryFilePath)}`);
-        await git.push('origin', 'main');
+        await git.push('origin', 'master');
         console.log(`Pushed summary to repo`);
     } catch (e) {
         console.error('Failed to push:', e);

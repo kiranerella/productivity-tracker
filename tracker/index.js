@@ -1,77 +1,83 @@
-const chokidar = require('chokidar');
-const simpleGit = require('simple-git');
+const path = require('path');
 const cron = require('node-cron');
-// This script tracks file changes in the current directory and commits them every 30 minutes.
-const { summarizeChanges } = require('./summarizer');
+const dotenv = require('dotenv');
+const fs = require('fs');
+const chokidar = require('chokidar');
+const { initRepo, commitAndPushSummary, getRecentCommits } = require('./gitCommitter');
+const { generateSummary } = require('./summarizer');
+const { addArticle, getRandomArticle } = require('./articleFetcher');
 
-const git = simpleGit();
-const watcher = chokidar.watch('.', {
-  ignored: /node_modules|\.git|articles/,
-  ignoreInitial: true
-});
+// loading environment variables
+dotenv.config();
 
-let changeBuffer = [];
+// Repo path and summaries directory
+const repoPath = path.resolve(process.env.GIT_REPO_PATH || './activity_repo');
+const summariesDir = path.join(repoPath, 'summaries');
 
 // Track file changes
-watcher.on('all', (event, path) => {
-  console.log(`Detected: ${event} on ${path}`);
-  changeBuffer.push({ event, path });
-});
+let changeBuffer = [];
 
-// Commit every 30 min - can be adjusted as needed or use dynamic user defined intervals
-cron.schedule('*/30 * * * *', async () => {
-  if (changeBuffer.length === 0) {
-    console.log('Idle mode: add article (todo)');
-  } else {
-    console.log('Committing summary...');
-    await git.add('.');
-    await git.commit(`chore: summary of ${changeBuffer.length} changes at ${new Date().toISOString()}`);
-    changeBuffer = [];
-  }
-});
-console.log('Tracker started...');
+// Watch code files (ignore node_modules, articles, etc)
+chokidar.watch('.', { ignored: /(^|[\/\\])\..|node_modules|activity_repo|articles/ })
+  .on('all', (event, filePath) => {
+    console.log(`Detected: ${event} on ${filePath}`);
+    changeBuffer.push(`${event}: ${filePath}`);
+  });
 
-
-const { startWatching, getRecentChangesAndClear } = require('./fileWatcher');
-const { generateSummary, saveSummaryToFile } = require('./summarizer');
-const { initRepo, commitAndPushSummary } = require('./gitCommitter');
-
+// Init git repo once at start
 (async () => {
-  await initRepo();
-  startWatching('./');
-
-  cron.schedule(process.env.GIT_COMMIT_INTERVAL, async () => {
-    console.log('Generating summary...');
-    const changes = getRecentChangesAndClear();
-    const summary = await generateSummary(changes);
-    const filePath = await saveSummaryToFile(summary);
-    await commitAndPushSummary(filePath);
-});
+  try {
+    await initRepo();
+  } catch (e) {
+    console.error('Failed to init repo:', e);
+  }
 })();
 
-const { getRecentCommits } = require('./gitCommitter');
-const { getRandomArticle } = require('./articleFetcher');
+// Cron job to summarize & commit every N minutes
+cron.schedule(process.env.GIT_COMMIT_INTERVAL || '*/2 * * * *', async () => {
+  console.log('⏳ Running summary cron job...');
 
-cron.schedule(process.env.GIT_COMMIT_INTERVAL, async () => {
-    console.log('⏳ Generating summary...');
-    const changes = getRecentChangesAndClear();
+  const changes = [...changeBuffer];
+  changeBuffer = [];
 
-    let summary = "";
+  let summaryText = "";
+
+  try {
+    // 1: GPT summarizer
+    summaryText = await generateSummary(changes);
+    console.log('GPT summary generated');
+  } catch (e) {
+    console.error('GPT summarizer failed, fallback:', e.message);
 
     try {
-        summary = await generateSummary(changes);
-    } catch (e) {
-        console.error('GPT summarizer failed, trying local commits');
-        const commits = await getRecentCommits();
-        if (commits.length) {
-            summary = "Manual fallback summary based on recent commits:\n" +
-                      commits.map(c => `- ${c.message}`).join('\n');
-        } else {
-            console.log('No commits found, using fallback article');
-            summary = await getRandomArticle();
-        }
+      // 2: get recent commits
+      const commits = await getRecentCommits();
+      if (commits.length) {
+        summaryText = "Manual fallback summary based on recent commits:\n" +
+          commits.map(c => `- ${c.message}`).join('\n');
+        console.log('Used commit history as fallback');
+      } else {
+        // 3: get new article & use it
+        await addArticle();  // fetch new article into articles/
+        summaryText = await getRandomArticle(); // read article content
+        console.log('Used random article as fallback');
+      }
+    } catch (innerErr) {
+      console.error('All fallbacks failed:', innerErr);
+      summaryText = "Fallback: Unable to generate summary.";
     }
+  }
 
-    const filePath = await saveSummaryToFile(summary);
+  try {
+    if (!fs.existsSync(summariesDir)) fs.mkdirSync(summariesDir, { recursive: true });
+    const fileName = `summary-${new Date().toISOString().replace(/[:.]/g, '-')}.md`;
+    const filePath = path.join(summariesDir, fileName);
+    fs.writeFileSync(filePath, summaryText, 'utf8');
+    console.log(`Saved summary: ${filePath}`);
+
     await commitAndPushSummary(filePath);
+    console.log('Committed & pushed summary to repo');
+  } catch (e) {
+    console.error('Failed to save or push summary:', e);
+  }
 });

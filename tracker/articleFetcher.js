@@ -1,31 +1,20 @@
 const Parser = require('rss-parser');
 const fs = require('fs');
-const parser = new Parser();
-const summaryMsg = await summarizeChanges(changeBuffer);
 const path = require('path');
+const parser = new Parser();
 
-// This function fetches the latest article from freeCodeCamp's RSS feed and saves it as a markdown file.
+// Fetches latest article from RSS & saves as markdown
 async function addArticle() {
   let feed = await parser.parseURL('https://www.freecodecamp.org/news/rss/');
   const first = feed.items[0];
-  const filename = `articles/article-${Date.now()}.md`;
+  const articlesDir = path.join(__dirname, '..', 'articles');
+  if (!fs.existsSync(articlesDir)) fs.mkdirSync(articlesDir);
+  const filename = path.join(articlesDir, `article-${Date.now()}.md`);
   fs.writeFileSync(filename, `# ${first.title}\n\n${first.link}`);
   console.log(`Added article: ${first.title}`);
 }
 
-//
-module.exports = { addArticle };
-
-
-// This code fetches the latest article from freeCodeCamp's RSS feed and saves it as a markdown file.
-const { addArticle } = require('./articleFetcher');
-// inside cron job
-if (changeBuffer.length === 0) {
-  await addArticle();
-  await git.add('.');
-  await git.commit(summaryMsg);
-}
-
+// Picks random existing article content
 async function getRandomArticle() {
   const articlesDir = path.join(__dirname, '..', 'articles');
   const files = fs.readdirSync(articlesDir).filter(f => f.endsWith('.md'));
@@ -33,4 +22,5 @@ async function getRandomArticle() {
   const randomFile = files[Math.floor(Math.random() * files.length)];
   return fs.readFileSync(path.join(articlesDir, randomFile), 'utf8');
 }
-module.exports = { getRandomArticle };
+
+module.exports = { addArticle, getRandomArticle };
