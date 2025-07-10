@@ -12,3 +12,4 @@ extension/out/
 # VS Code settings (optional, sometimes keep launch.json)
 .vscode/
 summaries
+articles
