@@ -52,6 +52,11 @@ cron.schedule(process.env.GIT_COMMIT_INTERVAL || '*/2 * * * *', async () => {
     try {
       // 2: get recent commits
       const commits = await getRecentCommits();
+      // on WIP commits, use the block to force to fallback summary
+      /* await addArticle();  // fetch new article
+      summaryText = await getRandomArticle();
+       console.log('Forced article fallback');
+      */
       if (commits.length) {
         summaryText = "Manual fallback summary based on recent commits:\n" +
           commits.map(c => `- ${c.message}`).join('\n');
