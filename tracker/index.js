@@ -7,24 +7,24 @@ const { initRepo, commitAndPushSummary, getRecentCommits } = require('./gitCommi
 const { generateSummary } = require('./summarizer');
 const { addArticle, getRandomArticle } = require('./articleFetcher');
 
-// loading environment variables
 dotenv.config();
 
-// Repo path and summaries directory
 const repoPath = path.resolve(process.env.GIT_REPO_PATH || './activity_repo');
 const summariesDir = path.join(repoPath, 'summaries');
+const branch = process.env.GIT_BRANCH || 'master';
+const interval = process.env.GIT_COMMIT_INTERVAL || '*/2 * * * *';
+const forceArticle = process.env.FORCE_ARTICLE === '1';
 
-// Track file changes
 let changeBuffer = [];
 
-// Watch code files (ignore node_modules, articles, etc)
+// Watch source files (ignore noise)
 chokidar.watch('.', { ignored: /(^|[\/\\])\..|node_modules|activity_repo|articles/ })
   .on('all', (event, filePath) => {
     console.log(`Detected: ${event} on ${filePath}`);
     changeBuffer.push(`${event}: ${filePath}`);
   });
 
-// Init git repo once at start
+// Init git repo once
 (async () => {
   try {
     await initRepo();
@@ -33,9 +33,9 @@ chokidar.watch('.', { ignored: /(^|[\/\\])\..|node_modules|activity_repo|article
   }
 })();
 
-// Cron job to summarize & commit every N minutes
-cron.schedule(process.env.GIT_COMMIT_INTERVAL || '*/2 * * * *', async () => {
-  console.log('⏳ Running summary cron job...');
+// Cron: summarize & commit
+cron.schedule(interval, async () => {
+  console.log('Running summary cron job...');
 
   const changes = [...changeBuffer];
   changeBuffer = [];
@@ -43,28 +43,27 @@ cron.schedule(process.env.GIT_COMMIT_INTERVAL || '*/2 * * * *', async () => {
   let summaryText = "";
 
   try {
-    // 1: GPT summarizer
-    summaryText = await generateSummary(changes);
-    console.log('GPT summary generated');
+    if (forceArticle) {
+      console.log('⚡ FORCE_ARTICLE=1 → skipping GPT & commits, adding article');
+      await addArticle();
+      summaryText = await getRandomArticle();
+    } else {
+      // Try GPT summarizer
+      summaryText = await generateSummary(changes);
+      console.log('GPT summary generated');
+    }
   } catch (e) {
     console.error('GPT summarizer failed, fallback:', e.message);
 
     try {
-      // 2: get recent commits
       const commits = await getRecentCommits();
-      // on WIP commits, use the block to force to fallback summary
-      /* await addArticle();  // fetch new article
-      summaryText = await getRandomArticle();
-       console.log('Forced article fallback');
-      */
       if (commits.length) {
         summaryText = "Manual fallback summary based on recent commits:\n" +
           commits.map(c => `- ${c.message}`).join('\n');
         console.log('Used commit history as fallback');
       } else {
-        // 3: get new article & use it
-        await addArticle();  // fetch new article into articles/
-        summaryText = await getRandomArticle(); // read article content
+        await addArticle();
+        summaryText = await getRandomArticle();
         console.log('Used random article as fallback');
       }
     } catch (innerErr) {
