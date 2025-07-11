@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { TrackerPanel } from './panel';
+import { DashboardPanel } from './panels/dashboard';
+
 
 // This is the main entry point for the Productivity Tracker extension
 export function activate(context: vscode.ExtensionContext) {
@@ -9,7 +11,11 @@ export function activate(context: vscode.ExtensionContext) {
     TrackerPanel.createOrShow(context.extensionUri);
   });
 
-  context.subscriptions.push(disposable);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('extension.showDashboard', () => {
+      DashboardPanel.show(context.extensionUri);
+    })
+  );
 }
 
 export function deactivate() {}

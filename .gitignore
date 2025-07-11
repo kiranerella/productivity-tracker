@@ -14,3 +14,4 @@ extension/out/
 summaries
 articles
 activity_repo
+*.vsix
