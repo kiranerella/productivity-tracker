@@ -8,11 +8,13 @@
 - Own your data (private repo)
 - Enrich idle time with fresh knowledge
 
-## MVP Features
-✅ Watch local changes  
-✅ Auto‑commit summaries periodically  
-✅ Add new article if idle  
-✅ VS Code panel with stats
+## CURRENT Features
+✅ Local file watcher
+✅ GPT summarizer
+✅ Commit fallback
+✅ Article fallback
+✅ All pushed to your private repo, on real branch (master)
+✅ Dynamic article content
 
 ---
 
