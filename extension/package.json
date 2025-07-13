@@ -5,31 +5,41 @@
     "version": "0.0.1",
     "publisher": "KiranNerella",
     "engines": {
-        "vscode": "^1.80.0"
+        "vscode": "^1.93.0"
     },
     "activationEvents": [
-        "onCommand:extension.startTracker"
+        "onCommand:extension.startTracker",
+        "onCommand:extension.showDashboard"
     ],
-    "main": "./out/extension.js",
     "contributes": {
         "commands": [
             {
                 "command": "extension.startTracker",
                 "title": "Start Tracker"
+            },
+            {
+                "command": "extension.showDashboard",
+                "title": "Show Dashboard"
             }
         ]
     },
+    "main": "./out/extension.js",
     "scripts": {
         "compile": "tsc",
-        "watch": "tsc -w"
+        "watch": "tsc -w",
+        "clean": "rimraf out"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kiranerella/productivity-tracker"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "devDependencies": {
         "@types/node": "^24.0.12",
-        "@types/vscode": "^1.101.0",
-        "typescript": "^5.8.3",
-        "vscode": "^1.1.37"
+        "@types/vscode": "^1.93.0",
+        "rimraf": "^6.0.1",
+        "typescript": "^5.8.3"
     }
 }
