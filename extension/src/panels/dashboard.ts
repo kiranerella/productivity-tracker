@@ -35,7 +35,10 @@ export class DashboardPanel {
   private static fetchLatestSummaries(): string[] {
     const fs = require('fs');
     const path = require('path');
-    const summariesDir = process.env.SUMMARY_PATH || path.join(__dirname, '..', '..', 'activity_repo', 'summaries');
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
+    // const summariesDir = process.env.SUMMARY_PATH || path.join(workspaceRoot, 'activity_repo', 'summaries');
+    const fallback = path.resolve(__dirname, '../../../activity_repo/summaries');
+    const summariesDir = process.env.SUMMARY_PATH || fallback;
   
     try {
       const files: string[] = fs.readdirSync(summariesDir).filter((f: string) => f.endsWith('.md'));
@@ -52,17 +55,26 @@ export class DashboardPanel {
    */  
 
   private static getWebviewContent(summaries: string[]): string {
-    const renderedSummaries = summaries.map((summary, i) => `
-      <div class="summary-item">
-        <div class="summary-header" onclick="toggleSummary(${i})">
-          <strong>Summary #${i + 1}</strong>
-          <button class="toggle-btn">Toggle</button>
+    const renderedSummaries = summaries.map((summary, i) => {
+      const wordCount = summary.trim().split(/\s+/).length;
+      const timestamp = `Last Commit: <em>Placeholder</em>`; // Replace with dynamic data later
+  
+      return `
+        <div class="summary-item">
+          <div class="summary-header" onclick="toggleSummary(${i})">
+            <strong>Summary #${i + 1}</strong>
+            <button class="toggle-btn">Toggle</button>
+          </div>
+          <div class="summary-body" id="summary-${i}">
+            <pre>${summary}</pre>
+            <div class="meta">
+                Word Count: ${wordCount} <br/>
+              ${timestamp}
+            </div>
+          </div>
         </div>
-        <div class="summary-body" id="summary-${i}">
-          <pre>${summary}</pre>
-        </div>
-      </div>
-    `).join('\n');
+      `;
+    }).join('\n');
   
     return `
       <!DOCTYPE html>
@@ -80,7 +92,7 @@ export class DashboardPanel {
           }
           .controls {
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
             margin-bottom: 16px;
           }
           .summary-item {
@@ -98,13 +110,17 @@ export class DashboardPanel {
             display: block;
             padding-top: 10px;
           }
+          .meta {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 8px;
+          }
           .hidden {
             display: none;
           }
           input[type="text"] {
             flex: 1;
             padding: 6px;
-            margin-right: 10px;
           }
         </style>
       </head>
@@ -114,6 +130,8 @@ export class DashboardPanel {
         <div class="controls">
           <input type="text" id="filterInput" placeholder="Filter summaries..." oninput="applyFilter()" />
           <button onclick="refresh()">🔄 Refresh</button>
+          <button onclick="copyAll()">📋 Copy All</button>
+          <button onclick="exportAll()">⬇️ Export</button>
         </div>
   
         <div id="summaryContainer">
@@ -123,11 +141,7 @@ export class DashboardPanel {
         <script>
           function toggleSummary(index) {
             const el = document.getElementById('summary-' + index);
-            if (el.classList.contains('hidden')) {
-              el.classList.remove('hidden');
-            } else {
-              el.classList.add('hidden');
-            }
+            el.classList.toggle('hidden');
           }
   
           function applyFilter() {
@@ -143,9 +157,32 @@ export class DashboardPanel {
             const vscode = acquireVsCodeApi();
             vscode.postMessage({ command: 'refresh' });
           }
+  
+          function copyAll() {
+            const summaries = Array.from(document.querySelectorAll('.summary-body pre'))
+              .map(pre => pre.innerText)
+              .join('\\n\\n---\\n\\n');
+            navigator.clipboard.writeText(summaries).then(() => {
+              alert('All summaries copied to clipboard!');
+            });
+          }
+  
+          function exportAll() {
+            const summaries = Array.from(document.querySelectorAll('.summary-body pre'))
+              .map(pre => pre.innerText)
+              .join('\\n\\n---\\n\\n');
+            const blob = new Blob([summaries], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'summaries_export.md';
+            a.click();
+            URL.revokeObjectURL(url);
+          }
         </script>
       </body>
       </html>
     `;
   }
+  
 }  
