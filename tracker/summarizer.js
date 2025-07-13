@@ -35,7 +35,7 @@ async function saveSummaryToFile(summary) {
     const filePath = path.join(dir, filename);
     fs.writeFileSync(filePath, summary, 'utf8');
 
-    console.log(`📝 Saved summary: ${filePath}`);
+    console.log(`Saved summary: ${filePath}`);
     return filePath;
 }
 
