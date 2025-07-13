@@ -1,4 +1,4 @@
-console.log('✅ Extension file loaded');
+console.log('Extension file loaded');
 
 import * as vscode from 'vscode';
 import { DashboardPanel } from './panels/dashboard';
