@@ -15,3 +15,6 @@ summaries
 articles
 activity_repo
 *.vsix
+out/
+*.js
+*.js.map

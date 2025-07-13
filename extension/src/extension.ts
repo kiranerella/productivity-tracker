@@ -1,23 +1,36 @@
+console.log('✅ Extension file loaded');
+
 import * as vscode from 'vscode';
-import { TrackerPanel } from './panel';
 import { DashboardPanel } from './panels/dashboard';
 
+// export function activate(context: vscode.ExtensionContext) {
+//   console.log('✅ Extension activated');
 
-// This is the main entry point for the Productivity Tracker extension
+//   let trackerCmd = vscode.commands.registerCommand('extension.startTracker', () => {
+//     vscode.window.showInformationMessage('Tracker started!');
+//     // start tracker logic
+//   });
+
+//   let dashboardCmd = vscode.commands.registerCommand('extension.showDashboard', () => {
+//     DashboardPanel.render(context.extensionUri);
+//   });
+
+//   context.subscriptions.push(trackerCmd, dashboardCmd);
+// }
+
+// export function deactivate() {}
+
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Productivity Tracker Extension active!');
+  console.log('✅ Extension activated');
 
-  let disposable = vscode.commands.registerCommand('extension.startTracker', () => {
-    TrackerPanel.createOrShow(context.extensionUri);
+  let trackerCmd = vscode.commands.registerCommand('extension.startTracker', () => {
+    vscode.window.showInformationMessage('Tracker started!');
   });
 
-  context.subscriptions.push(
-    vscode.commands.registerCommand('extension.showDashboard', () => {
-      DashboardPanel.show(context.extensionUri);
-    })
-  );
-}
+  let dashboardCmd = vscode.commands.registerCommand('extension.showDashboard', () => {
+    DashboardPanel.render(context.extensionUri);
+  });
 
-export function deactivate() {}
-console.log('✅ Extension activated and running');
+  context.subscriptions.push(trackerCmd, dashboardCmd);
+}
 

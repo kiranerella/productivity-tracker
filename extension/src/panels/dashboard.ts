@@ -1,46 +1,43 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 
 export class DashboardPanel {
-  public static currentPanel: DashboardPanel | undefined;
-  private readonly _panel: vscode.WebviewPanel;
-  private readonly _extensionUri: vscode.Uri;
+  public static render(extensionUri: vscode.Uri) {
+    // fallback joinPath for older VSCode
+    const webDir = vscode.Uri.joinPath
+      ? vscode.Uri.joinPath(extensionUri, 'web')
+      : vscode.Uri.file(path.join(extensionUri.fsPath, 'web'));
 
-  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
-    this._panel = panel;
-    this._extensionUri = extensionUri;
+    const panel = vscode.window.createWebviewPanel(
+      'productivityDashboard',
+      'Productivity Dashboard',
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        localResourceRoots: [webDir]
+      }
+    );
 
-    this._update();
+    panel.webview.html = DashboardPanel.getWebviewContent();
   }
 
-  public static show(extensionUri: vscode.Uri) {
-    const column = vscode.ViewColumn.One;
-
-    if (DashboardPanel.currentPanel) {
-      DashboardPanel.currentPanel._panel.reveal(column);
-    } else {
-      const panel = vscode.window.createWebviewPanel(
-        'productivityDashboard',
-        'Productivity Tracker',
-        column,
-        {
-          enableScripts: true,
-          localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'web')]
-        }
-      );
-
-      DashboardPanel.currentPanel = new DashboardPanel(panel, extensionUri);
-
-      panel.onDidDispose(() => {
-        DashboardPanel.currentPanel = undefined;
-      });
-    }
-  }
-
-  private _update() {
-    const htmlPath = path.join(this._extensionUri.fsPath, 'web', 'dashboard.html');
-    const html = fs.readFileSync(htmlPath, 'utf8');
-    this._panel.webview.html = html;
+  private static getWebviewContent(): string {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Productivity Dashboard</title>
+        <style>
+          body { font-family: sans-serif; padding: 20px; }
+          h1 { color: #007acc; }
+        </style>
+      </head>
+      <body>
+        <h1>Productivity Dashboard</h1>
+        <p>This is your stunning live dashboard!</p>
+      </body>
+      </html>
+    `;
   }
 }
