@@ -26,6 +26,7 @@
     "main": "./out/extension.js",
     "scripts": {
         "compile": "tsc",
+        "bundle": "node build.js",
         "watch": "tsc -w",
         "clean": "rimraf out"
     },
