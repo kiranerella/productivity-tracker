@@ -1,4 +1,4 @@
-console.log('✅ Extension file loaded');
+console.log('Extension file loaded');
 
 import * as vscode from 'vscode';
 import { DashboardPanel } from './panels/dashboard';
@@ -27,21 +27,20 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 function getLatestSummaries(): string[] {
-  const summariesDir = process.env.SUMMARY_PATH || path.join(__dirname, '..', 'activity_repo', 'summaries');
-  console.log('Reading summaries from:', summariesDir);
+  const defaultPath = path.resolve(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '', 'activity_repo', 'summaries');
+  const fallback = path.resolve(__dirname, '../../../activity_repo/summaries');
+  const summariesDir = process.env.SUMMARY_PATH || defaultPath || fallback;
 
   try {
-    if (!fs.existsSync(summariesDir)) {
-      console.warn('Summaries directory not found');
-      return [];
-    }
-
+    console.log('📂 Loading from:', summariesDir);
     const files = fs.readdirSync(summariesDir).filter(f => f.endsWith('.md'));
-    return files.slice(-5).map(f => fs.readFileSync(path.join(summariesDir, f), 'utf8'));
+    console.log('📄 Found summary files:', files);
+    return files.map(f => fs.readFileSync(path.join(summariesDir, f), 'utf8'));
   } catch (err) {
     console.error('Failed to load summaries:', err);
-    return [];
+    return ['⚠️ Could not read summaries directory.'];
   }
 }
+
 
 
