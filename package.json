@@ -1,6 +1,6 @@
 {
   "name": "productivity-tracker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "> Private, real, context‑rich productivity tracking directly inside VS Code. > Track your work, auto‑commit summaries, and learn on idle time.",
   "main": "index.js",
   "directories": {

@@ -1,8 +1,9 @@
 {
-    "name": "productivity-tracker",
-    "displayName": "Productivity Tracker",
+    "name": "git-productivity-insights",
+    "icon": "Git-Productivity-Tracker-logo.png",
+    "displayName": "Git Productivity Tracker",
     "description": "Track coding activity & auto-commit summaries to private repo.",
-    "version": "0.0.1",
+    "version": "0.1.1",
     "publisher": "KiranNerella",
     "engines": {
         "vscode": "^1.93.0"
