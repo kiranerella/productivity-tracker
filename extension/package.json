@@ -1,6 +1,6 @@
 {
-    "name": "productivity-tracker",
-    "displayName": "Productivity Tracker",
+    "name": "git-productivity-insights",
+    "displayName": "Git Productivity Tracker",
     "description": "Track coding activity & auto-commit summaries to private repo.",
     "version": "0.0.1",
     "publisher": "KiranNerella",
