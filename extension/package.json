@@ -43,6 +43,7 @@
         "typescript": "^5.8.3"
     },
     "dependencies": {
-        "dotenv": "^17.2.0"
+        "dotenv": "^17.2.0",
+        "openai": "^5.9.0"
     }
 }

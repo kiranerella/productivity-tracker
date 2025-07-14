@@ -1,0 +1,17 @@
+# Excluding development folders
+node_modules/
+src/
+.vscode/
+out/*.map
+*.ts
+test/
+scripts/
+docs/
+.vscodeignore
+
+# Misc files
+*.log
+*.md
+*.zip
+*.vsix
+.env
