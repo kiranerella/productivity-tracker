@@ -18,3 +18,4 @@ activity_repo
 out/
 *.js
 *.js.map
+.DS_Store
